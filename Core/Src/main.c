@@ -23,6 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <unistd.h>
 
 /* USER CODE END Includes */
 
@@ -37,6 +39,12 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+
+#define min(x,y) ({                                                            \
+    __typeof__(x) __x = (x);                                                   \
+    __typeof__(__x) __y = (__typeof__(__x))(y);                                \
+    __x < __y ? __x : __y;                                                     \
+})
 
 /* USER CODE END PM */
 
@@ -138,6 +146,21 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+int _write(int file, char *ptr, int len)
+{
+    if (file != STDOUT_FILENO && file != STDERR_FILENO)
+    {
+        return 0;
+    }
+    while (len > 0)
+    {
+        uint16_t send_len = min(len, UINT16_MAX);
+        HAL_UART_Transmit(&huart1, (uint8_t*)ptr, send_len, HAL_MAX_DELAY);
+        len -= send_len;
+    }
+    return len;
+}
 
 /* USER CODE END 4 */
 
