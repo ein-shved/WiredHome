@@ -1,5 +1,7 @@
 {
-  description = "The template project for stm32 with logging to uart";
+  description = ''
+    Own Smart Home decentralized wired project based on stm32 controllers
+  '';
   inputs = {
     nixpkgs.url = "nixpkgs";
     stm32.url = github:ein-shved/nix-stm32;
@@ -7,7 +9,7 @@
   };
   outputs = { self, stm32, nixpkgs } :
   let
-    name = "stm32-uart-log";
+    name = "WiredHome";
     pkgs = nixpkgs.legacyPackages.x86_64-linux;
     findTty = pkgs.writeShellScriptBin "findTty" ''
       set -e
