@@ -53,8 +53,7 @@
     scripts = pkgs.symlinkJoin {
       name = "${name}-scripts";
       paths = [
-        firmware.flasher
-        firmware.debugger
+        firmware.scripts
         stm32catty
         stm32stty
       ];
