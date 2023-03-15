@@ -162,7 +162,9 @@ int _write(int file, char *ptr, int len)
   while (len > 0)
   {
     uint16_t send_len = min(len, UINT16_MAX);
+    __disable_irq();
     HAL_UART_Transmit(&huart1, (uint8_t *)ptr, send_len, HAL_MAX_DELAY);
+    __enable_irq();
     len -= send_len;
   }
   return len;
