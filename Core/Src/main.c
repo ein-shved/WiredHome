@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 /* USER CODE END Includes */
@@ -59,7 +60,7 @@ CAN_RxHeaderTypeDef RxHeader;
 uint8_t             TxData[8] = {
               0,
 };
-uint8_t RxData[8] = {
+uint8_t RxData[9] = {
   0,
 };
 uint32_t TxMailbox = 0;
@@ -79,18 +80,18 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    printf("Can received #%d\n", RxData[0]);
+    printf("[EMBDD] Can received: %s\n", RxData);
   }
   else
   {
-    printf("Can receive failed\n");
+    printf("[EMBDD] Can receive failed\n");
   }
 }
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 {
   uint32_t er = HAL_CAN_GetError(hcan);
-  printf("ER CAN %u %08X\n", er, er);
+  printf("[EMBDD] ER CAN %u %08X\n", er, er);
 }
 /* USER CODE END 0 */
 
@@ -135,10 +136,7 @@ int main(void)
   TxHeader.DLC                = 8;
   TxHeader.TransmitGlobalTime = 0;
 
-  for (uint8_t i = 0; i < 8; i++)
-  {
-    TxData[i] = (i + 10);
-  }
+  memset(TxData, 0, sizeof(TxData));
   __enable_irq();
   if (
     HAL_CAN_ActivateNotification(
@@ -166,14 +164,14 @@ int main(void)
     /* USER CODE BEGIN 3 */
     while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0)
       ;
-    TxData[0] = ++cnt;
+    snprintf((char *)TxData, sizeof(TxData), "%dHi", ++cnt);
     if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
     {
-      printf("Can failed to send #%u\n", cnt);
+      printf("[EMBDD] Can failed to send #%u\n", cnt);
     }
     else
     {
-      printf("Can transmitted #%u\n", cnt);
+      printf("[EMBDD] Can transmitted #%u\n", cnt);
     }
     HAL_Delay(500);
   }

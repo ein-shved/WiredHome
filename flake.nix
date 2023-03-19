@@ -45,6 +45,28 @@
       tty="$(${findTty}/bin/findTty "$@")"
       ${stm32stty}/bin/stm32stty "$tty" && exec cat "$tty"
     '';
+    cantest =
+    let
+      cantest = pkgs.runCommandCC "cantest" {
+          src = ./Host/cantest.c;
+        } ''
+          gcc -o cantest $src
+          install -D cantest $out/bin/cantest
+        '';
+    in pkgs.writeShellScriptBin "cantest" ''
+      set -e
+      canable="''${1-$(find /dev/serial/by-id/ -iname '*canable*' -print -quit)}"
+      canable="$(readlink -f "$canable")"
+      iface="''${2-slcan0}"
+
+      if ! ip l show "$iface" 2>/dev/null | grep '\<UP\>' -q; then
+        sudo ${pkgs.can-utils}/bin/slcand -o -s6 "$canable" "$iface"
+        sudo ip l set "$iface" up
+      fi
+
+      exec ${cantest}/bin/cantest $iface
+    '';
+
     firmware = stm32.mkFirmware {
       inherit name;
       mcu = stm32.mcus.stm32f103;
@@ -58,6 +80,7 @@
         firmware.scripts
         stm32catty
         stm32stty
+        cantest
       ];
     };
   };
